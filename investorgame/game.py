@@ -1,4 +1,5 @@
 
+import os
 import arcade
 import random
 import numpy as np
@@ -7,7 +8,8 @@ from game_constants import (SCREEN_WIDTH, SCREEN_HEIGHT,
     PLAYER_MOVEMENT_SPEED, LEFT_VIEWPORT_MARGIN, RIGHT_VIEWPORT_MARGIN,
     BOTTOM_VIEWPORT_MARGIN, TOP_VIEWPORT_MARGIN)
 
-PATH_TO_IMAGES = '../images/'
+PATH_TO_IMAGES = (
+    '/'.join(os.path.realpath(__file__).split('/')[:-1]) + '/../images/')
 
 # TODO: add inflation
 # TODO: add retirement etc
@@ -23,9 +25,7 @@ PATH_TO_IMAGES = '../images/'
 
 
 class InvestorGame(arcade.Window):
-    """
-    Main application class.
-    """
+    """Investor game"""
     def __init__(self):
         # Call the parent class and set up the window
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
@@ -44,11 +44,11 @@ class InvestorGame(arcade.Window):
 
         # Our physics engine
         self.physics_engine = None
-        self.total_game_seconds = 0.
+        self.total_game_seconds = None
 
         # Used to keep track of our scrolling
-        self.view_bottom = 0
-        self.view_left = 0
+        self.view_bottom = None
+        self.view_left = None
 
         arcade.set_background_color(arcade.csscolor.CORNFLOWER_BLUE)
 
@@ -90,6 +90,8 @@ class InvestorGame(arcade.Window):
             self._draw_running_top_down_view()
         elif self.current_state == 'computer_running':
             self._draw_running_computer()
+        elif self.current_state == 'game_end':
+            self._draw_game_end()
         else:
             raise ValueError(f"unrecognised current_state "
                              f"{self.current_state}")
@@ -126,6 +128,7 @@ class InvestorGame(arcade.Window):
 
         year_end = self._get_current_year()
         if year_start < year_end:
+            self.player_info['age'] += 1
             self._update_player_current_money()
             self._create_coin_list()
 
@@ -134,6 +137,9 @@ class InvestorGame(arcade.Window):
         if n_days_past > 0:
             for _ in range(n_days_past):
                 self._update_player_isa_money()
+
+        if self.player_info['age'] == 60:
+            self.current_state = 'game_end'
 
     def _create_player_list(self):
         self.player_list = arcade.SpriteList()
@@ -247,8 +253,8 @@ class InvestorGame(arcade.Window):
         page_texture = self.computer
         arcade.draw_texture_rectangle(self.view_left + (SCREEN_WIDTH / 2.),
                                       self.view_bottom + (SCREEN_HEIGHT / 2.),
-                                      page_texture.width,
-                                      page_texture.height, page_texture, 0)
+                                      page_texture.width, page_texture.height,
+                                      page_texture, 0)
 
         if self.computer_state == 'login':
             text = ("Log into the website\nof your stocks and\nshares ISA "
@@ -267,6 +273,13 @@ class InvestorGame(arcade.Window):
 
         arcade.draw_text(
             text, self.view_left + (SCREEN_WIDTH / 3.),
+            self.view_bottom + (SCREEN_HEIGHT / 2.),
+            arcade.color.BLACK, 20, bold=True)
+
+    def _draw_game_end(self):
+        self._draw_background_text()
+        arcade.draw_text(
+            'End of game\n', self.view_left + (SCREEN_WIDTH / 3.),
             self.view_bottom + (SCREEN_HEIGHT / 2.),
             arcade.color.BLACK, 20, bold=True)
 
@@ -336,10 +349,13 @@ class InvestorGame(arcade.Window):
 
     def _draw_background_text(self):
         year = self._get_current_year()
+        current_money = np.round(self.player_info['current_money'], 2)
+        isa_money = np.round(self.player_info['isa_money'], 2)
         arcade.draw_text(
             f"Year: {year}\n"
-            f"Current account: £{np.round(self.player_info['current_money'], 2)}\n"
-            f"Stocks and shares ISA: £{np.round(self.player_info['isa_money'], 2)}\n",
+            f"Age: {self.player_info['age']}\n"
+            f"Current account: £{current_money}\n"
+            f"Stocks and shares ISA: £{isa_money}\n",
             self.view_left + (LEFT_VIEWPORT_MARGIN / 2.),
             self.view_bottom + SCREEN_HEIGHT - (TOP_VIEWPORT_MARGIN * 1.1),
             arcade.color.BLACK, 20, bold=True)
