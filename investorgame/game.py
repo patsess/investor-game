@@ -1,15 +1,16 @@
 
-import os
 import arcade
 import random
 import numpy as np
-from game_constants import (SCREEN_WIDTH, SCREEN_HEIGHT,
+from game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH, SCREEN_HEIGHT,
     SCREEN_TITLE, CHARACTER_SCALING, TILE_SCALING, COIN_SCALING,
     PLAYER_MOVEMENT_SPEED, LEFT_VIEWPORT_MARGIN, RIGHT_VIEWPORT_MARGIN,
     BOTTOM_VIEWPORT_MARGIN, TOP_VIEWPORT_MARGIN)
+from player import get_initialised_player_sprite
+from bot import get_initialised_bot_sprite, get_favoured_direction
 
-PATH_TO_IMAGES = (
-    '/'.join(os.path.realpath(__file__).split('/')[:-1]) + '/../images/')
+# TODO: WHY DOES THE BOT JUMP AROUND??
+# TODO: WHY HAS THE COMPUTER STOPPED WORKING? IS IT DUE TO THE MULTIPLE PHYSICS ENGINES?
 
 # TODO: add inflation
 # TODO: add retirement etc
@@ -34,6 +35,7 @@ class InvestorGame(arcade.Window):
         # go into a list.
         self.wall_list = None
         self.player_list = None
+        self.bot_list = None
         self.computer_sprite = None
         self.item_list = None
         self.coin_list = None
@@ -42,8 +44,11 @@ class InvestorGame(arcade.Window):
         self.player_sprite = None
         self.player_info = None
 
+        self.bot_sprite = None
+
         # Our physics engine
         self.physics_engine = None
+        self.bot_physics_engine = None
         self.total_game_seconds = None
 
         # Used to keep track of our scrolling
@@ -65,15 +70,28 @@ class InvestorGame(arcade.Window):
 
         self._create_wall_list()
         self._create_player_list()
+        self._create_bot_list()
         self._setup_player()
+        self._setup_bot()
         self._create_item_list()
         self._setup_computer()
         self._create_coin_list()
 
         # Create the 'physics engine'
+        player_walls = self.wall_list
+        player_walls.append(self.bot_sprite)
         self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite,
-                                                         self.wall_list)
+                                                         player_walls)
         self.total_game_seconds = 0.
+
+        bot_walls = self.wall_list
+        bot_walls.append(self.player_sprite)
+        for item in self.item_list:
+            bot_walls.append(item)
+
+        self.bot_physics_engine = arcade.PhysicsEngineSimple(self.bot_sprite,
+                                                             bot_walls)
+        # TODO: is this separate physics engine necessary?
 
         self.player_info = {
             'age': 22,
@@ -145,51 +163,15 @@ class InvestorGame(arcade.Window):
         self.player_list = arcade.SpriteList()
 
     def _setup_player(self):
-        self.player_sprite = arcade.AnimatedWalkingSprite()
-
-        self.player_sprite.stand_right_textures = []
-        self.player_sprite.stand_right_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_stand.png",
-                                scale=CHARACTER_SCALING))
-        self.player_sprite.stand_left_textures = []
-        self.player_sprite.stand_left_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_stand.png",
-                                scale=CHARACTER_SCALING, mirrored=True))
-
-        self.player_sprite.walk_right_textures = []
-
-        self.player_sprite.walk_right_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_stand.png",
-                                scale=CHARACTER_SCALING))
-        self.player_sprite.walk_right_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_walk1.png",
-                                scale=CHARACTER_SCALING))
-        self.player_sprite.walk_right_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_walk2.png",
-                                scale=CHARACTER_SCALING))
-        self.player_sprite.walk_right_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_walk1.png",
-                                scale=CHARACTER_SCALING))
-
-        self.player_sprite.walk_left_textures = []
-
-        self.player_sprite.walk_left_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_stand.png",
-                                scale=CHARACTER_SCALING, mirrored=True))
-        self.player_sprite.walk_left_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_walk1.png",
-                                scale=CHARACTER_SCALING, mirrored=True))
-        self.player_sprite.walk_left_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_walk2.png",
-                                scale=CHARACTER_SCALING, mirrored=True))
-        self.player_sprite.walk_left_textures.append(
-            arcade.load_texture(f"{PATH_TO_IMAGES}player_1/female_walk1.png",
-                                scale=CHARACTER_SCALING, mirrored=True))
-
-        # self.player.texture_change_distance = 20
-        self.player_sprite.center_x = int(SCREEN_WIDTH / 2.)
-        self.player_sprite.center_y = int(SCREEN_HEIGHT / 2.)
+        self.player_sprite = get_initialised_player_sprite()
         self.player_list.append(self.player_sprite)
+
+    def _create_bot_list(self):
+        self.bot_list = arcade.SpriteList()
+
+    def _setup_bot(self):
+        self.bot_sprite = get_initialised_bot_sprite()
+        self.bot_list.append(self.bot_sprite)
 
     def _create_wall_list(self):
         # place horizontally (using multiple sprites)
@@ -230,7 +212,7 @@ class InvestorGame(arcade.Window):
 
             coin_placed_well = True
             for sprite_list in [self.player_list, self.wall_list,
-                                self.item_list]:
+                                self.item_list, self.bot_list]:
                 for s in sprite_list:
                     if arcade.check_for_collision(coin, s):
                         coin_placed_well = False
@@ -242,6 +224,7 @@ class InvestorGame(arcade.Window):
     def _draw_running_top_down_view(self):
         self.wall_list.draw()
         self.player_list.draw()
+        self.bot_list.draw()
         self.item_list.draw()
         self.coin_list.draw()
 
@@ -260,7 +243,8 @@ class InvestorGame(arcade.Window):
             text = ("Log into the website\nof your stocks and\nshares ISA "
                     "provider?\n(y/n)\n")
         elif self.computer_state == 'deposit_question':
-            text = (f"Account balance: £{np.round(self.player_info['isa_money'], 2)}\n"
+            isa_money = self.player_info['isa_money']
+            text = (f"Account balance: £{np.round(isa_money, 2)}\n"
                     f"\nDeposit money?\n(y/n)\n")
         elif self.computer_state == 'deposit_amount':
             text = ("How much would you\nlike to deposit?\n\n0 - back\n1 - "
@@ -370,7 +354,8 @@ class InvestorGame(arcade.Window):
         return int(self._get_prop_through_current_year() * 365)
 
     def _update_player_current_money(self):
-        self.player_info['current_money'] += self.player_info['current_money'] * 0.01
+        self.player_info['current_money'] += (
+            self.player_info['current_money'] * 0.01)
         # TODO: interest paid should depend on the proportion of the year that
         #  money is in the account
 
@@ -379,14 +364,18 @@ class InvestorGame(arcade.Window):
         scale_ = 0.005
         returns = np.maximum(
             -0.1, np.minimum(0.1, np.random.normal(loc=loc_, scale=scale_)))
-        self.player_info['isa_money'] += self.player_info['isa_money'] * returns
+        self.player_info['isa_money'] += (
+            self.player_info['isa_money'] * returns)
 
     def _update_top_down_view_running(self):
         # Call update on all sprites
         self.physics_engine.update()
+        self.bot_physics_engine.update()
         self.player_list.update_animation()
+        self.bot_list.update_animation()
         self._handle_coin_collection()
         self._handle_computer_collision()
+        self._update_bot()
 
         # --- Manage Scrolling ---
 
@@ -441,6 +430,20 @@ class InvestorGame(arcade.Window):
                                       self.computer_sprite):
             self.computer_state = 'login'
             self.current_state = 'computer_running'
+
+    def _update_bot(self):
+        favoured_direction = get_favoured_direction(
+            bot_sprite=self.bot_sprite, coin_list=self.coin_list)
+        if favoured_direction is None:
+            return None
+
+        bot_speed = int(PLAYER_MOVEMENT_SPEED / 3.)
+        self.bot_sprite.change_x = min(bot_speed, favoured_direction[0])
+        self.bot_sprite.change_y = min(bot_speed, favoured_direction[1])
+
+        for c in self.coin_list:
+            if arcade.check_for_collision(self.bot_sprite, c):
+                c.kill()
 
 
 def main():
