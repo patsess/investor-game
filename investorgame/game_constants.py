@@ -1,4 +1,10 @@
 
+import os
+
+
+PATH_TO_IMAGES = (
+    '/'.join(os.path.realpath(__file__).split('/')[:-1]) + '/../images/')
+
 # Constants
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
