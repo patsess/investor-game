@@ -438,8 +438,12 @@ class InvestorGame(arcade.Window):
             return None
 
         bot_speed = int(PLAYER_MOVEMENT_SPEED / 3.)
-        self.bot_sprite.change_x = min(bot_speed, favoured_direction[0])
-        self.bot_sprite.change_y = min(bot_speed, favoured_direction[1])
+        self.bot_sprite.change_x = (
+            np.sign(favoured_direction[0]) *
+            min(bot_speed, np.abs(favoured_direction[0])))
+        self.bot_sprite.change_y = (
+            np.sign(favoured_direction[1]) *
+            min(bot_speed, np.abs(favoured_direction[1])))
 
         for c in self.coin_list:
             if arcade.check_for_collision(self.bot_sprite, c):
