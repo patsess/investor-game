@@ -2,6 +2,7 @@
 import arcade
 import random
 import numpy as np
+from copy import deepcopy
 from game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH, SCREEN_HEIGHT,
     SCREEN_TITLE, CHARACTER_SCALING, TILE_SCALING, COIN_SCALING,
     PLAYER_MOVEMENT_SPEED, LEFT_VIEWPORT_MARGIN, RIGHT_VIEWPORT_MARGIN,
@@ -45,10 +46,12 @@ class InvestorGame(arcade.Window):
         self.player_info = None
 
         self.bot_sprite = None
+        self.bot_helper_sprite = None
 
         # Our physics engine
-        self.physics_engine = None
+        self.player_physics_engine = None
         self.bot_physics_engine = None
+        self.bot_helper_physics_engine = None
         self.total_game_seconds = None
 
         # Used to keep track of our scrolling
@@ -71,26 +74,31 @@ class InvestorGame(arcade.Window):
         self._create_wall_list()
         self._create_player_list()
         self._create_bot_list()
+        self._create_bot_helper_list()
         self._setup_player()
         self._setup_bot()
+        self._setup_bot_helper()
         self._create_item_list()
         self._setup_computer()
         self._create_coin_list()
 
         # Create the 'physics engine'
-        player_walls = self.wall_list
+        player_walls = deepcopy(self.wall_list)
         player_walls.append(self.bot_sprite)
-        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite,
-                                                         player_walls)
+        self.player_physics_engine = arcade.PhysicsEngineSimple(
+            self.player_sprite, player_walls)
         self.total_game_seconds = 0.
 
-        bot_walls = self.wall_list
+        bot_walls = deepcopy(self.wall_list)
         bot_walls.append(self.player_sprite)
         for item in self.item_list:
             bot_walls.append(item)
 
-        self.bot_physics_engine = arcade.PhysicsEngineSimple(self.bot_sprite,
-                                                             bot_walls)
+        bot_helper_walls = deepcopy(bot_walls)
+        self.bot_physics_engine = arcade.PhysicsEngineSimple(
+            self.bot_sprite, bot_walls)
+        self.bot_helper_physics_engine = arcade.PhysicsEngineSimple(
+            self.bot_helper_sprite, bot_helper_walls)
         # TODO: is this separate physics engine necessary?
 
         self.player_info = {
@@ -169,9 +177,16 @@ class InvestorGame(arcade.Window):
     def _create_bot_list(self):
         self.bot_list = arcade.SpriteList()
 
+    def _create_bot_helper_list(self):
+        self.bot_helper_list = arcade.SpriteList()
+
     def _setup_bot(self):
         self.bot_sprite = get_initialised_bot_sprite()
         self.bot_list.append(self.bot_sprite)
+
+    def _setup_bot_helper(self):
+        self.bot_helper_sprite = get_initialised_bot_sprite()
+        self.bot_helper_list.append(self.bot_helper_sprite)
 
     def _create_wall_list(self):
         # place horizontally (using multiple sprites)
@@ -369,13 +384,17 @@ class InvestorGame(arcade.Window):
 
     def _update_top_down_view_running(self):
         # Call update on all sprites
-        self.physics_engine.update()
-        self.bot_physics_engine.update()
-        self.player_list.update_animation()
-        self.bot_list.update_animation()
+        self.player_physics_engine.update()
         self._handle_coin_collection()
         self._handle_computer_collision()
         self._update_bot()
+        self.bot_physics_engine.update()
+        for c in self.coin_list:
+            if arcade.check_for_collision(self.bot_sprite, c):
+                c.kill()
+
+        self.player_list.update_animation()
+        self.bot_list.update_animation()
 
         # --- Manage Scrolling ---
 
@@ -439,17 +458,39 @@ class InvestorGame(arcade.Window):
             self.bot_sprite.change_y = 0
             return None
 
-        bot_speed = int(PLAYER_MOVEMENT_SPEED / 3.)
-        self.bot_sprite.change_x = (
-            np.sign(favoured_direction[0]) *
-            min(bot_speed, np.abs(favoured_direction[0])))
-        self.bot_sprite.change_y = (
-            np.sign(favoured_direction[1]) *
-            min(bot_speed, np.abs(favoured_direction[1])))
+        if not self._is_direction_good(direction=favoured_direction):
+            self.bot_sprite.change_x = 0
+            self.bot_sprite.change_y = 0
+            return None
 
-        for c in self.coin_list:
-            if arcade.check_for_collision(self.bot_sprite, c):
-                c.kill()
+        def _get_change_x_y(speed_, direction_):
+            dir_x = int(direction_[0])
+            dir_y = int(direction_[1])
+            change_x = int(np.sign(dir_x) * min(speed_, np.abs(dir_x)))
+            change_y = int(np.sign(dir_y) * min(speed_, np.abs(dir_y)))
+            return change_x, change_y
+
+        bot_speed = int(PLAYER_MOVEMENT_SPEED / 3.)
+        change_x_y = _get_change_x_y(speed_=bot_speed,
+                                     direction_=favoured_direction)
+        self.bot_sprite.change_x = change_x_y[0]
+        self.bot_sprite.change_y = change_x_y[1]
+
+        # self.bot_physics_engine.update()
+
+        # for c in self.coin_list:
+        #     if arcade.check_for_collision(self.bot_sprite, c):
+        #         c.kill()
+
+    def _is_direction_good(self, direction):
+        self.bot_helper_sprite.center_x = int(self.bot_sprite.center_x)
+        self.bot_helper_sprite.center_y = int(self.bot_sprite.center_y)
+        self.bot_helper_sprite.change_x = int(direction[0])
+        self.bot_helper_sprite.change_y = int(direction[1])
+        self.bot_helper_physics_engine.update()
+        self.bot_helper_list.update_animation()
+        return any([arcade.check_for_collision(self.bot_helper_sprite, c)
+                    for c in self.coin_list])
 
 
 def main():
