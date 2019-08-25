@@ -1,4 +1,5 @@
 
+import arcade
 import numpy as np
 
 
@@ -20,6 +21,7 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
         round_furthest_x_fn = (lambda x: int(np.ceil(x)))
         round_closest_y_fn = (lambda y: int(np.ceil(y)))
         round_furthest_y_fn = (lambda y: int(np.floor(y)))
+
     elif closest_x_index == 0 and closest_y_index == 1:
         closest_x = left
         furthest_x = right
@@ -30,6 +32,7 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
         round_furthest_x_fn = (lambda x: int(np.ceil(x)))
         round_closest_y_fn = (lambda y: int(np.floor(y)))
         round_furthest_y_fn = (lambda y: int(np.ceil(y)))
+
     elif closest_x_index == 1 and closest_y_index == 0:
         closest_x = right
         furthest_x = left
@@ -40,6 +43,7 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
         round_furthest_x_fn = (lambda x: int(np.floor(x)))
         round_closest_y_fn = (lambda y: int(np.ceil(y)))
         round_furthest_y_fn = (lambda y: int(np.floor(y)))
+
     elif closest_x_index == 1 and closest_y_index == 1:
         closest_x = right
         furthest_x = left
@@ -50,6 +54,7 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
         round_furthest_x_fn = (lambda x: int(np.floor(x)))
         round_closest_y_fn = (lambda y: int(np.floor(y)))
         round_furthest_y_fn = (lambda y: int(np.ceil(y)))
+
     else:
         raise ValueError(f"unable to detect new position relative to location "
                          f"(closest_x_index {closest_x_index}, "
@@ -72,12 +77,21 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
             (furthest_x, round_furthest_x_fn, closest_y, round_closest_y_fn)]]
     return grid_points
 
+
+def is_line_of_sight_clear(grid_points, object_sprite_list):
+    for obj_sprite in object_sprite_list:
+        if arcade.geometry.are_polygons_intersecting(grid_points,
+                                                     obj_sprite.points):
+            return False
+
+    return True
+
+
     # TODO:
     #  - do for furthest_x and closest_y too
     #  - return grid points, and use to work out if a list sprites blocks the sight
 
-    print('debugging')  # TODO: remove!!
-
 
 if __name__ == '__main__':
-    get_line_of_sight_grid((10, 5), left=21, right=23, top=17, bottom=15)
+    grid_points = get_line_of_sight_helper_grid_points(
+        (10, 5), left=21, right=23, top=17, bottom=15)
