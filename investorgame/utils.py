@@ -11,11 +11,12 @@ def is_in_line_of_sight(pov_sprite, object_sprite, obstacle_sprite_list):
         location=p1_location,
         left=object_sprite.left, right=object_sprite.right,
         top=object_sprite.top, bottom=object_sprite.bottom)
-    p1 = Polygon(p1_points)
+    p1 = Polygon([p1_location] + p1_points)
 
     line_of_sight = (
-        not any([p1.intersects(Polygon([(s.center_x, s.center_y)]))
-                 for s in obstacle_sprite_list]))
+        not any([p1.intersects(Polygon(
+            [(s.left, s.top), (s.right, s.top), (s.right, s.bottom),
+             (s.left, s.bottom)])) for s in obstacle_sprite_list]))
     return line_of_sight
     # TODO: change it to using the centre of the object sprite?
 
@@ -93,7 +94,8 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
     #         (closest_x, round_closest_x_fn, furthest_y, round_furthest_y_fn),
     #         (furthest_x, round_furthest_x_fn, closest_y, round_closest_y_fn)]]
 
-    grid_points = [(closest_x, furthest_y), (furthest_x, closest_y)]
+    grid_points = [(int(closest_x), int(furthest_y)),
+                   (int(furthest_x), int(closest_y))]
     return grid_points
 
 
@@ -104,11 +106,6 @@ def is_line_of_sight_clear(grid_points, object_sprite_list):
             return False
 
     return True
-
-
-    # TODO:
-    #  - do for furthest_x and closest_y too
-    #  - return grid points, and use to work out if a list sprites blocks the sight
 
 
 if __name__ == '__main__':
