@@ -1,14 +1,21 @@
 
+# import os
+import sys
+# module_path = os.path.abspath(os.path.join('..'))
+module_path = '/home/pat/python_projects/repos/investor-game'
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
 import arcade
 import random
 import numpy as np
 from copy import deepcopy
-from game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH, SCREEN_HEIGHT,
-    SCREEN_TITLE, CHARACTER_SCALING, TILE_SCALING, COIN_SCALING,
+from investorgame.game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
+    SCREEN_HEIGHT, SCREEN_TITLE, CHARACTER_SCALING, TILE_SCALING, COIN_SCALING,
     PLAYER_MOVEMENT_SPEED, LEFT_VIEWPORT_MARGIN, RIGHT_VIEWPORT_MARGIN,
     BOTTOM_VIEWPORT_MARGIN, TOP_VIEWPORT_MARGIN)
-from player import get_initialised_player_sprite
-from bot import get_initialised_bot_sprite, get_favoured_direction
+from investorgame.player import get_initialised_player_sprite
+from investorgame.bot import get_initialised_bot_sprite, get_favoured_direction
 
 # TODO: WHY DOES THE BOT JUMP AROUND??
 # TODO: WHY HAS THE COMPUTER STOPPED WORKING? IS IT DUE TO THE MULTIPLE PHYSICS ENGINES?
@@ -452,7 +459,8 @@ class InvestorGame(arcade.Window):
 
     def _update_bot(self):
         favoured_direction = get_favoured_direction(
-            bot_sprite=self.bot_sprite, coin_list=self.coin_list)
+            bot_sprite=self.bot_sprite, coin_list=self.coin_list,
+            wall_list=None)
         if favoured_direction is None:
             self.bot_sprite.change_x = 0
             self.bot_sprite.change_y = 0
