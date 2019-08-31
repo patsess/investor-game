@@ -100,6 +100,7 @@ def get_line_of_sight_helper_grid_points(location, left, right, top, bottom):
 
 
 def is_line_of_sight_clear(grid_points, object_sprite_list):
+    # TODO: docstr
     for obj_sprite in object_sprite_list:
         if arcade.geometry.are_polygons_intersecting(grid_points,
                                                      obj_sprite.points):
