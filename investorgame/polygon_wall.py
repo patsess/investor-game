@@ -3,6 +3,13 @@ import arcade
 
 __author__ = 'psessford'
 
+# TODO
+# make each (peice of straight) wall a single polygone.
+# - maybe could even loop through wall sprite and work out optimal polygones.
+# - maybe for a specified polygone, work out the optomial wall sprites to fill/create it.
+#
+# show bot's bank balance, who doesn't have an isa. Could add another player.
+
 
 class PolygonWall(object):
     # TODO: docstr
