@@ -19,10 +19,10 @@ class PolygonWall(object):
         # TODO: docstr
         assert (wall_left < wall_right)
         assert (wall_bottom < wall_top)
-        self.wall_left = wall_left
-        self.wall_right = wall_right
-        self.wall_top = wall_top
-        self.wall_bottom = wall_bottom
+        self.left = wall_left
+        self.right = wall_right
+        self.top = wall_top
+        self.bottom = wall_bottom
 
         self.sprite_image = sprite_image
 
@@ -37,18 +37,17 @@ class PolygonWall(object):
     def wall_polygon_points(self):
         if self._wall_polygon_points is None:
             self._wall_polygon_points = [
-                (self.wall_left, self.wall_bottom),
-                (self.wall_left, self.wall_top),
-                (self.wall_right, self.wall_top),
-                (self.wall_right, self.wall_bottom)]
+                (self.left, self.bottom),
+                (self.left, self.top),
+                (self.right, self.top),
+                (self.right, self.bottom)]
 
         return self._wall_polygon_points
 
     @property
     def wall_size(self):
         if self._wall_size is None:
-            self._wall_size = (self.wall_right - self.wall_left,
-                               self.wall_top - self.wall_bottom)
+            self._wall_size = (self.right - self.left, self.top - self.bottom)
 
         return self._wall_size
 
@@ -89,15 +88,15 @@ class PolygonWall(object):
             n_sprites = int(np.ceil(
                 self.wall_size[0] / float(sprite_width)))
             assert (n_sprites > 0)
-            end_sprite_centres_x = [self.wall_left + half_sprite_width,
-                                    self.wall_right - half_sprite_width]
+            end_sprite_centres_x = [self.left + half_sprite_width,
+                                    self.right - half_sprite_width]
             sprite_gap_size = (
                 (end_sprite_centres_x[1] - end_sprite_centres_x[0]) /
                 float(n_sprites))
             sprite_centres_x = [
                 end_sprite_centres_x[0] + (i * sprite_gap_size)
                 for i in range(n_sprites)]
-            sprite_centre_y = (self.wall_bottom + self.wall_top) / 2.
+            sprite_centre_y = (self.bottom + self.top) / 2.
             wall_sprite_list = [
                 arcade.Sprite(self.sprite_image, scale=sprite_scaling,
                               center_x=x, center_y=sprite_centre_y)
@@ -110,15 +109,15 @@ class PolygonWall(object):
             n_sprites = int(np.ceil(
                 self.wall_size[1] / float(sprite_height)))
             assert (n_sprites > 0)
-            end_sprite_centres_y = [self.wall_bottom + half_sprite_height,
-                                    self.wall_top - half_sprite_height]
+            end_sprite_centres_y = [self.bottom + half_sprite_height,
+                                    self.top - half_sprite_height]
             sprite_gap_size = (
                 (end_sprite_centres_y[1] - end_sprite_centres_y[0]) /
                 float(n_sprites))
             sprite_centres_y = [
                 end_sprite_centres_y[0] + (i * sprite_gap_size)
                 for i in range(n_sprites)]
-            sprite_centre_x = (self.wall_left + self.wall_right) / 2.
+            sprite_centre_x = (self.left + self.right) / 2.
             wall_sprite_list = [
                 arcade.Sprite(self.sprite_image, scale=sprite_scaling,
                               center_x=sprite_centre_x, center_y=y)
