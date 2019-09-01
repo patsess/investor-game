@@ -48,6 +48,7 @@ class InvestorGame(arcade.Window):
         self.computer_sprite = None
         self.item_list = None
         self.coin_list = None
+        self.polygon_walls = None
 
         # Separate variable that holds the player sprite
         self.player_sprite = None
@@ -197,34 +198,23 @@ class InvestorGame(arcade.Window):
         self.bot_helper_list.append(self.bot_helper_sprite)
 
     def _create_wall_list(self):
-        # place horizontally (using multiple sprites)
         self.wall_list = arcade.SpriteList()
-        # for x in range(0, 500):
-        #     for y in [20, 500]:
-        #         wall = arcade.Sprite(f"{PATH_TO_IMAGES}tiles/foliagePack_leaves_002.png", TILE_SCALING)
-        #         wall.center_x = x
-        #         wall.center_y = y
-        #         self.wall_list.append(wall)
 
         wall_image = f"{PATH_TO_IMAGES}tiles/foliagePack_leaves_002.png"
-        for left_, right_, top_, bottom_ in [
-            (-16, 515, 36, 4),
+        wall_locations = [
+            (-16, 515, 36, 4),  # place horizontally (using multiple sprites)
             (-16, 515, 516, 484),
-            (-16, 16, 516, 4),
-        ]:
-            wall = PolygonWall(wall_left=left_, wall_right=right_,
-                               wall_top=top_, wall_bottom=bottom_,
-                               sprite_image=wall_image)
-            wall_sprite_list = wall.get_sprites_to_form_wall()
+            (-16, 16, 516, 4),  # place vertically (using multiple sprites)
+        ]
+        self.polygon_walls = [
+            PolygonWall(wall_left=left_, wall_right=right_, wall_top=top_,
+                        wall_bottom=bottom_, sprite_image=wall_image)
+            for left_, right_, top_, bottom_ in wall_locations]
+
+        for polygon_wall in self.polygon_walls:
+            wall_sprite_list = polygon_wall.get_sprites_to_form_wall()
             for wall in wall_sprite_list:
                 self.wall_list.append(wall)
-
-        # # place vertically (using multiple sprites)
-        # for y in range(20, 500):
-        #     wall = arcade.Sprite(f"{PATH_TO_IMAGES}tiles/foliagePack_leaves_002.png", TILE_SCALING)
-        #     wall.center_x = 0
-        #     wall.center_y = y
-        #     self.wall_list.append(wall)
 
     def _create_item_list(self):
         self.item_list = arcade.SpriteList()
@@ -474,7 +464,7 @@ class InvestorGame(arcade.Window):
     def _update_bot(self):
         favoured_direction = get_favoured_direction(
             bot_sprite=self.bot_sprite, coin_list=self.coin_list,
-            wall_list=None)
+            wall_list=None)  # TODO: FIX self.polygon_walls!!!!!
         if favoured_direction is None:
             self.bot_sprite.change_x = 0
             self.bot_sprite.change_y = 0
