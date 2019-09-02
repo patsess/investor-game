@@ -1,7 +1,7 @@
 
 import arcade
-from game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH, SCREEN_HEIGHT,
-    CHARACTER_SCALING)
+from investorgame.constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
+    SCREEN_HEIGHT, CHARACTER_SCALING)
 
 
 def get_initialised_player_sprite():
