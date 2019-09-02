@@ -464,7 +464,7 @@ class InvestorGame(arcade.Window):
     def _update_bot(self):
         favoured_direction = get_favoured_direction(
             bot_sprite=self.bot_sprite, coin_list=self.coin_list,
-            wall_list=None)  # TODO: FIX self.polygon_walls!!!!!
+            wall_list=self.polygon_walls)  # TODO: FIX self.polygon_walls!!!!!
         if favoured_direction is None:
             self.bot_sprite.change_x = 0
             self.bot_sprite.change_y = 0
