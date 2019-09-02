@@ -10,10 +10,10 @@ import arcade
 import random
 import numpy as np
 from copy import deepcopy
-from investorgame.game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
-    SCREEN_HEIGHT, SCREEN_TITLE, CHARACTER_SCALING, TILE_SCALING, COIN_SCALING,
-    PLAYER_MOVEMENT_SPEED, LEFT_VIEWPORT_MARGIN, RIGHT_VIEWPORT_MARGIN,
-    BOTTOM_VIEWPORT_MARGIN, TOP_VIEWPORT_MARGIN)
+from investorgame.constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
+                                    SCREEN_HEIGHT, SCREEN_TITLE, CHARACTER_SCALING, TILE_SCALING, COIN_SCALING,
+                                    PLAYER_MOVEMENT_SPEED, LEFT_VIEWPORT_MARGIN, RIGHT_VIEWPORT_MARGIN,
+                                    BOTTOM_VIEWPORT_MARGIN, TOP_VIEWPORT_MARGIN)
 from investorgame.polygon_wall import PolygonWall
 from investorgame.player import get_initialised_player_sprite
 from investorgame.bot import get_initialised_bot_sprite, get_favoured_direction

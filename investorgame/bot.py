@@ -1,8 +1,8 @@
 
 import arcade
 import numpy as np
-from investorgame.game_constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
-    SCREEN_HEIGHT, CHARACTER_SCALING)
+from investorgame.constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
+                                    SCREEN_HEIGHT, CHARACTER_SCALING)
 from investorgame.utils import is_in_line_of_sight
 
 

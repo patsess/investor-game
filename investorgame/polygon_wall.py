@@ -127,7 +127,7 @@ class PolygonWall(object):
 
 
 if __name__ == '__main__':
-    from investorgame.game_constants import PATH_TO_IMAGES
+    from investorgame.constants import PATH_TO_IMAGES
 
     wall_left = 5
     wall_right = 100
