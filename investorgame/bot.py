@@ -2,7 +2,7 @@
 import arcade
 import numpy as np
 from investorgame.constants import (PATH_TO_IMAGES, SCREEN_WIDTH,
-                                    SCREEN_HEIGHT, CHARACTER_SCALING)
+    SCREEN_HEIGHT, CHARACTER_SCALING)
 from investorgame.utils import is_in_line_of_sight
 
 
@@ -77,6 +77,9 @@ def get_location_of_nearest_coin(bot_sprite, coin_list, wall_list=None):
             for coin in coin_list
             if is_in_line_of_sight(pov_sprite=bot_sprite, object_sprite=coin,
                                    obstacle_sprite_list=wall_list)]
+
+    if len(distances_from_coin) == 0:
+        return None
 
     nearest_coin = coin_list[np.argmin(distances_from_coin)]
     return nearest_coin.center_x, nearest_coin.center_y
