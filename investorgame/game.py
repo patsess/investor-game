@@ -18,9 +18,6 @@ from investorgame.polygon_wall import PolygonWall
 from investorgame.player import get_initialised_player_sprite
 from investorgame.bot import get_initialised_bot_sprite, get_favoured_direction
 
-# TODO: WHY DOES THE BOT JUMP AROUND??
-# TODO: WHY HAS THE COMPUTER STOPPED WORKING? IS IT DUE TO THE MULTIPLE PHYSICS ENGINES?
-
 # TODO: add inflation
 # TODO: add retirement etc
 # TODO: add variation in income opportunity - could pay money to get
